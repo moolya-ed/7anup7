@@ -95,10 +95,6 @@ http://127.0.0.1:8000/static/index.html
 
 Built by Anup @ Moolya as a learning project.
 
-```
 
----
-
-Let me know if you want a version with screenshots, colors, or instructions to deploy it online.
 ```
 
