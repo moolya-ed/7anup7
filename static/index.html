@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Todo App</title>
+  <style>
+    body {
+    font-family: Arial, sans-serif;
+    margin: 30px;
+    background-color: #f5f5f5;
+    color: #333;
+  }
+  
+  h1, h2 {
+    color: #2c3e50;
+  }
+  
+  input[type="text"], input[type="checkbox"] {
+    padding: 8px;
+    margin: 5px 0;
+    width: 300px;
+    display: block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  button {
+    padding: 10px 15px;
+    margin-top: 10px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background-color: #2980b9;
+  }
+  
+  ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  li {
+    background-color: white;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-left: 5px solid #3498db;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .hidden {
+    display: none;
+  }
+  
+  </style>
+</head>
+<body onload="fetchTodos()">
+  <h1>Todo App</h1>
+
+  <!-- Add Todo -->
+  <h2>Add Todo</h2>
+  <input type="text" id="title" placeholder="Title"><br>
+  <input type="text" id="description" placeholder="Description"><br>
+  <button onclick="addTodo()">Add Todo</button>
+
+  <!-- Delete Todo -->
+  <h2>Delete Todo</h2>
+  <input type="text" id="delete-id" placeholder="Todo ID"><br>
+  <button onclick="deleteTodo()">Delete Todo</button>
+
+  <!-- Update Todo -->
+  <h2>Update Todo</h2>
+  <input type="text" id="update-id" placeholder="Todo ID"><br>
+  <input type="text" id="update-title" placeholder="New Title"><br>
+  <input type="text" id="update-description" placeholder="New Description"><br>
+  <label>
+    Completed: <input type="checkbox" id="update-completed">
+  </label><br>
+  <button onclick="updateTodo()">Update Todo</button>
+
+  <!-- View Todos -->
+  <h2>All Todos</h2>
+  <ul id="todo-list"></ul>
+
+  <script>
+    const API_URL = "http://127.0.0.1:8000/todos";
+
+// Load todos
+async function fetchTodos() {
+  const res = await fetch(API_URL);
+  const todos = await res.json();
+  const todoList = document.getElementById("todo-list");
+  todoList.innerHTML = "";
+
+  todos.forEach(todo => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <strong>${todo.title}</strong><br>
+      ${todo.description}<br>
+      Status: ${todo.doneStatus ? "Done" : "Not Done"}<br>
+      <button onclick="editTodo('${todo.id}')">Edit</button>
+      <button onclick="deleteTodo('${todo.id}')">Delete</button>
+    `;
+    todoList.appendChild(li);
+  });
+}
+
+// Add a new todo
+async function addTodo() {
+  const title = document.getElementById("title").value;
+  const description = document.getElementById("description").value;
+  const doneStatus = false; // Default value for a new todo
+  
+  const todo = { title, description, doneStatus };
+
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(todo),
+  });
+
+  fetchTodos(); // Refresh the todo list
+}
+
+// Update a todo
+async function updateTodo() {
+  const id = document.getElementById("update-id").value;
+  const title = document.getElementById("update-title").value;
+  const description = document.getElementById("update-description").value;
+  const doneStatus = document.getElementById("update-completed").checked;
+
+  const updatedTodo = { title, description, doneStatus };
+
+  const res = await fetch(`${API_URL}/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(updatedTodo),
+  });
+
+  fetchTodos(); // Refresh the todo list
+}
+
+// Delete a todo
+async function deleteTodo() {
+  const id = document.getElementById("delete-id").value;
+
+  await fetch(`${API_URL}/${id}`, {
+    method: "DELETE",
+  });
+
+  fetchTodos(); // Refresh the todo list
+}
+
+// Edit todo
+async function editTodo(id) {
+  const todo = await fetch(`${API_URL}/${id}`).then(res => res.json());
+  
+  document.getElementById("update-id").value = todo.id;
+  document.getElementById("update-title").value = todo.title;
+  document.getElementById("update-description").value = todo.description;
+  document.getElementById("update-completed").checked = todo.doneStatus;
+}
+
+  </script>
+</body>
+</html>
